@@ -1,0 +1,63 @@
+# eanom system configuration.
+
+pipeline:
+  input_width: 1280
+  input_height: 720
+  emit_overlay: true
+
+detectors:
+  motion:
+    enabled: true
+    type: mog2                  # mog2 | knn
+    history: 500
+    var_threshold: 16.0
+    detect_shadows: false
+    min_contour_area: 500
+    morphology_kernel: 5
+  scene_change:
+    enabled: true
+    histogram_method: chisqr
+    phash_threshold: 8
+    edge_density_delta: 0.05
+  padim:
+    enabled: false              # turn on once stats.bin + backbone.engine are ready
+    backbone_engine_path: "models/engines/resnet18_features_fp16.engine"
+    stats_path: "models/stats/padim_industrial.bin"
+    input_width: 224
+    input_height: 224
+    feature_dim: 100
+    threshold: 5.0
+
+ensemble:
+  fusion: weighted_sum          # weighted_sum | max
+  weights:
+    motion: 0.3
+    scene_change: 0.2
+    padim: 0.5
+  temporal:
+    ema_alpha: 0.3
+    min_duration_frames: 5
+
+roi:
+  zones:
+    - name: monitored
+      polygon: [[100, 50], [1180, 50], [1180, 670], [100, 670]]
+      severity_multiplier: 1.0
+    # Example "ignore" zone: a road that crosses the scene.
+    # - name: road
+    #   polygon: [[400, 400], [800, 400], [800, 720], [400, 720]]
+    #   ignore: true
+
+events:
+  cooldown_seconds: 30
+  severity_levels: [info, warning, critical]
+  sinks:
+    - type: stdout
+    # - type: file
+    #   path: /var/log/eanom/events.jsonl
+    # - type: webhook
+    #   url: ${WEBHOOK_URL}
+
+logging:
+  level: info
+  json: false
