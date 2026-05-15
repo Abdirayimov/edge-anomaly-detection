@@ -1,0 +1,18 @@
+services:
+  eanom:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: eanom:0.1.0
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./models:/app/models
+      - ./data:/app/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: "no"
