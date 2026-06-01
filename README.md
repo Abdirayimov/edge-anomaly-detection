@@ -14,6 +14,48 @@
 
 ---
 
+## Demo
+
+<p align="center">
+  <img src="docs/assets/eanom_demo.gif" width="600" alt="eanom_video running on a pedestrian clip: motion heatmap, live scores, and an ANOMALY alert when an object intrudes the monitored walkway">
+</p>
+
+Above is the actual output of the C++ `eanom_video` binary, frame for
+frame. The clip is the classic OpenCV `vtest.avi` pedestrian sample;
+to exercise the alerting path, a moving high-texture object is
+composited into the walkway partway through (a stand-in for an
+intrusion / visual interference event).
+
+The pipeline stays quiet during normal pedestrian traffic and raises
+a single `walkway` zone warning the moment the object enters the
+monitored region, then settles back to **OK** once it leaves — motion
+detection → score fusion → temporal smoothing → ROI scoring →
+severity-laddered alert, all in one pass.
+
+<p align="center">
+  <img src="docs/assets/eanom_ok.png" width="380" alt="Normal pedestrian traffic, status OK">
+  &nbsp;&nbsp;
+  <img src="docs/assets/eanom_alert.png" width="380" alt="Intrusion in the walkway zone, status ANOMALY">
+</p>
+<p align="center"><sub>Left: normal traffic (OK, low score). Right: object in the walkway (ANOMALY, red banner).</sub></p>
+
+Reproduce it with nothing but a compiled binary and the public sample
+clip — no model, no GPU required for this configuration:
+
+```bash
+# the pedestrian sample used above
+curl -L -o vtest.avi https://github.com/opencv/opencv/raw/4.x/samples/data/vtest.avi
+./build/eanom_video --config configs/demo_pedestrian.yaml \
+    --input vtest.avi --output annotated.mp4
+```
+
+> The animation was rendered inside the project's own Docker image
+> (`nvcr.io/nvidia/deepstream:8.0-gc-triton-devel` base) running the
+> compiled `eanom_video`; `ffmpeg` only decoded the input and encoded
+> the GIF.
+
+---
+
 ## Why this exists
 
 Anomaly detection on industrial / perimeter video has three

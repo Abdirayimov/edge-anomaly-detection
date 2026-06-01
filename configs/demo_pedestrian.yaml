@@ -1,0 +1,65 @@
+# Demo config used to produce the animation in the README.
+#
+# Tuned for the classic OpenCV `vtest.avi` pedestrian clip (768x576,
+# 10 fps). Motion + scene-change only (no PaDiM engine required), so it
+# reproduces with nothing but a compiled binary and the sample video:
+#
+#   ./build/eanom_video --config configs/demo_pedestrian.yaml \
+#       --input vtest.avi --output annotated.mp4
+
+pipeline:
+  input_width: 768
+  input_height: 576
+  emit_overlay: true
+
+detectors:
+  motion:
+    enabled: true
+    type: mog2
+    history: 300
+    var_threshold: 24.0
+    detect_shadows: false
+    min_contour_area: 350
+    morphology_kernel: 5
+  scene_change:
+    enabled: true
+    histogram_method: chisqr
+    phash_threshold: 8
+    edge_density_delta: 0.05
+  padim:
+    enabled: false
+
+ensemble:
+  fusion: weighted_sum
+  weights:
+    motion: 0.85         # a large intruding object is a motion signal first
+    scene_change: 0.15   # kept low: a busy pedestrian scene is noisy for it
+    padim: 0.0
+  temporal:
+    ema_alpha: 0.4
+    min_duration_frames: 4
+  # Normal pedestrian traffic sits around ~0.12; a large object sweeping
+  # the walkway pushes the smoothed score past this. Tuned on the
+  # clip itself.
+  firing_threshold: 0.22
+
+# Two zones demonstrate the ROI feature: the plaza walkway is the
+# region we care about (severity x1.5), while the upper strip of sky /
+# building is masked out so swaying trees never raise an alert.
+roi:
+  zones:
+    - name: walkway
+      polygon: [[40, 200], [730, 200], [730, 560], [40, 560]]
+      severity_multiplier: 1.5
+    - name: ignore_skyline
+      polygon: [[0, 0], [768, 0], [768, 140], [0, 140]]
+      ignore: true
+
+events:
+  cooldown_seconds: 2
+  sinks:
+    - type: stdout
+
+logging:
+  level: info
+  json: false

@@ -52,6 +52,10 @@ struct EnsembleConfig {
         {"motion", 0.3f}, {"scene_change", 0.2f}, {"padim", 0.5f}};
     float ema_alpha = 0.3f;
     std::uint32_t min_duration_frames = 5;
+    // Smoothed fused score above which a frame counts toward firing.
+    // Tune against a "normal" clip: it should sit above the baseline
+    // chatter and below the level a genuine anomaly produces.
+    float firing_threshold = 0.4f;
 };
 
 // ---- ROI ----
@@ -87,6 +91,11 @@ struct PipelineConfig {
     std::uint32_t input_width = 1280;
     std::uint32_t input_height = 720;
     bool emit_overlay = true;
+    // Frames to skip before emitting alerts. Background-subtraction
+    // detectors flag everything as foreground until their model has
+    // adapted; suppressing alerts during this window removes the
+    // start-up false positive.
+    std::uint32_t warmup_frames = 30;
 };
 
 struct LoggingConfig {

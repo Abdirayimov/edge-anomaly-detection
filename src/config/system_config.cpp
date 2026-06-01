@@ -29,6 +29,7 @@ SystemConfig SystemConfig::load(const std::string& yaml_path) {
         out.pipeline.input_width = optional<std::uint32_t>(p, "input_width", 1280);
         out.pipeline.input_height = optional<std::uint32_t>(p, "input_height", 720);
         out.pipeline.emit_overlay = optional<bool>(p, "emit_overlay", true);
+        out.pipeline.warmup_frames = optional<std::uint32_t>(p, "warmup_frames", 30);
     }
 
     if (const auto d = root["detectors"]; d) {
@@ -75,6 +76,7 @@ SystemConfig SystemConfig::load(const std::string& yaml_path) {
             out.ensemble.min_duration_frames =
                 optional<std::uint32_t>(t, "min_duration_frames", 5);
         }
+        out.ensemble.firing_threshold = optional<float>(e, "firing_threshold", 0.4f);
     }
 
     if (const auto r = root["roi"]; r) {

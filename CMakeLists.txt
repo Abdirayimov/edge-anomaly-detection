@@ -19,7 +19,7 @@ option(BUILD_TRT_PADIM "Build the TRT-based PaDiM detector" ON)
 option(BUILD_TESTS "Build unit tests" OFF)
 
 find_package(CUDAToolkit 12.0 REQUIRED)
-find_package(OpenCV 4.5 REQUIRED COMPONENTS core imgproc imgcodecs)
+find_package(OpenCV 4.5 REQUIRED COMPONENTS core imgproc imgcodecs videoio video)
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)

@@ -84,9 +84,12 @@ FrameOutput AnomalyPipeline::process(std::uint64_t frame_number, const cv::Mat& 
 
     out.zone_scores = roi_->score_in_zones(acc);
 
-    constexpr float kFiringThreshold = 0.4f;
-    out.smoothed_score = smoother_->push(out.fused_score, kFiringThreshold);
-    out.firing = smoother_->is_firing();
+    const float firing_threshold = cfg_.ensemble.firing_threshold;
+    out.smoothed_score = smoother_->push(out.fused_score, firing_threshold);
+    // Suppress firing during the detector warm-up window: background
+    // subtractors report the whole frame as foreground until their
+    // model adapts, which would otherwise produce a start-up alert.
+    out.firing = smoother_->is_firing() && frame_number >= cfg_.pipeline.warmup_frames;
 
     if (out.firing) {
         // Fire one alert per non-ignored zone whose score exceeds the

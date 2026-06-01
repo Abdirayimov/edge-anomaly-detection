@@ -10,8 +10,15 @@ namespace {
 /// Squash any non-negative score into [0, 1) so that detectors with
 /// wildly different scales (e.g. PaDiM Mahalanobis ~30, motion area
 /// ratio ~0.05) play together.
+///
+/// The slope `kSquash` controls how quickly a raw score saturates. It
+/// is chosen so the detectors' "typical anomalous" levels land in a
+/// usable mid-range rather than being crushed near zero: a motion
+/// foreground fraction of ~0.25 maps to ~0.5, while an unbounded
+/// PaDiM distance still saturates toward 1.
 float normalise(float score) {
-    return 1.0f - std::exp(-std::max(0.0f, score));
+    constexpr float kSquash = 2.8f;
+    return 1.0f - std::exp(-kSquash * std::max(0.0f, score));
 }
 
 }  // namespace
